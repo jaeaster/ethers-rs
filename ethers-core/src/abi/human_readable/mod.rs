@@ -23,7 +23,7 @@ pub struct AbiParser {
     ///
     /// Note: we need to map the index of the event here because events can contain nameless inputs
     pub event_params: HashMap<(String, usize), String>,
-    /// (function name) -> Vec<structs> all structs the function returns
+    /// (function name) -> `Vec<structs>` all structs the function returns
     pub outputs: HashMap<String, Vec<String>>,
 }
 
@@ -464,7 +464,8 @@ impl AbiParser {
     fn parse_param(&self, param: &str) -> Result<(Param, Option<String>)> {
         let mut iter = param.trim().rsplitn(3, is_whitespace);
 
-        let mut name = iter.next().ok_or(ParseError::ParseError(super::Error::InvalidData))?;
+        let mut name =
+            iter.next().ok_or_else(|| ParseError::ParseError(super::Error::InvalidData))?;
 
         let type_str;
         if let Some(ty) = iter.last() {

@@ -305,10 +305,21 @@ impl<'a, T: ArtifactOutput> CompiledState<'a, T> {
         // write all artifacts via the handler but only if the build succeeded and project wasn't
         // configured with `no_artifacts == true`
         let compiled_artifacts = if project.no_artifacts {
-            project.artifacts_handler().output_to_artifacts(&output.contracts, &output.sources, ctx)
-        } else if output.has_error() {
+            project.artifacts_handler().output_to_artifacts(
+                &output.contracts,
+                &output.sources,
+                ctx,
+                &project.paths,
+            )
+        } else if output.has_error(&project.ignored_error_codes, &project.compiler_severity_filter)
+        {
             trace!("skip writing cache file due to solc errors: {:?}", output.errors);
-            project.artifacts_handler().output_to_artifacts(&output.contracts, &output.sources, ctx)
+            project.artifacts_handler().output_to_artifacts(
+                &output.contracts,
+                &output.sources,
+                ctx,
+                &project.paths,
+            )
         } else {
             trace!(
                 "handling artifact output for {} contracts and {} sources",
@@ -348,14 +359,18 @@ impl<'a, T: ArtifactOutput> ArtifactsState<'a, T> {
     fn write_cache(self) -> Result<ProjectCompileOutput<T>> {
         trace!("write cache");
         let ArtifactsState { output, cache, compiled_artifacts } = self;
-        let ignored_error_codes = cache.project().ignored_error_codes.clone();
-        let skip_write_to_disk = cache.project().no_artifacts || output.has_error();
+        let project = cache.project();
+        let ignored_error_codes = project.ignored_error_codes.clone();
+        let compiler_severity_filter = project.compiler_severity_filter.clone();
+        let skip_write_to_disk = project.no_artifacts ||
+            output.has_error(&ignored_error_codes, &compiler_severity_filter);
         let cached_artifacts = cache.consume(&compiled_artifacts, !skip_write_to_disk)?;
         Ok(ProjectCompileOutput {
             compiler_output: output,
             compiled_artifacts,
             cached_artifacts,
             ignored_error_codes,
+            compiler_severity_filter,
         })
     }
 }

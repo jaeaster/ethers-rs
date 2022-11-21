@@ -43,7 +43,7 @@ pub static RE_THREE_OR_MORE_NEWLINES: Lazy<Regex> = Lazy::new(|| Regex::new("\n{
 
 /// Create a regex that matches any library or contract name inside a file
 pub fn create_contract_or_lib_name_regex(name: &str) -> Regex {
-    Regex::new(&format!(r#"(?:using\s+(?P<n1>{name})\s+|is\s+(?:\w+\s*,\s*)*(?P<n2>{name})(?:\s*,\s*\w+)*|(?:(?P<ignore>(?:function|error|as)\s+|\n[^\n]*(?:"([^"\n]|\\")*|'([^'\n]|\\')*))|\W+)(?P<n3>{name})(?:\.|\(| ))"#, name = name)).unwrap()
+    Regex::new(&format!(r#"(?:using\s+(?P<n1>{name})\s+|is\s+(?:\w+\s*,\s*)*(?P<n2>{name})(?:\s*,\s*\w+)*|(?:(?P<ignore>(?:function|error|as)\s+|\n[^\n]*(?:"([^"\n]|\\")*|'([^'\n]|\\')*))|\W+)(?P<n3>{name})(?:\.|\(| ))"#)).unwrap()
 }
 
 /// Move a range by a specified offset
@@ -285,7 +285,7 @@ pub fn library_fully_qualified_placeholder(name: impl AsRef<str>) -> String {
 pub fn library_hash_placeholder(name: impl AsRef<[u8]>) -> String {
     let hash = library_hash(name);
     let placeholder = hex::encode(hash);
-    format!("${}$", placeholder)
+    format!("${placeholder}$")
 }
 
 /// Returns the library placeholder for the given name
@@ -464,6 +464,17 @@ mod tests {
     fn can_create_parent_dirs_with_ext() {
         let tmp_dir = tempdir("out").unwrap();
         let path = tmp_dir.path().join("IsolationModeMagic.sol/IsolationModeMagic.json");
+        create_parent_dir_all(&path).unwrap();
+        assert!(path.parent().unwrap().is_dir());
+    }
+
+    #[test]
+    fn can_create_parent_dirs_versioned() {
+        let tmp_dir = tempdir("out").unwrap();
+        let path = tmp_dir.path().join("IVersioned.sol/IVersioned.0.8.16.json");
+        create_parent_dir_all(&path).unwrap();
+        assert!(path.parent().unwrap().is_dir());
+        let path = tmp_dir.path().join("IVersioned.sol/IVersioned.json");
         create_parent_dir_all(&path).unwrap();
         assert!(path.parent().unwrap().is_dir());
     }

@@ -1,4 +1,4 @@
-use fastrlp::{Decodable, Encodable};
+use open_fastrlp::{Decodable, Encodable};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{
     borrow::Borrow,
@@ -147,7 +147,7 @@ impl Encodable for Bytes {
 }
 
 impl Decodable for Bytes {
-    fn decode(buf: &mut &[u8]) -> Result<Self, fastrlp::DecodeError> {
+    fn decode(buf: &mut &[u8]) -> Result<Self, open_fastrlp::DecodeError> {
         Ok(Self(bytes::Bytes::decode(buf)?))
     }
 }
@@ -166,7 +166,7 @@ impl FromStr for Bytes {
             hex::decode(value)
         }
         .map(Into::into)
-        .map_err(|e| ParseBytesError(format!("Invalid hex: {}", e)))
+        .map_err(|e| ParseBytesError(format!("Invalid hex: {e}")))
     }
 }
 
@@ -200,8 +200,8 @@ mod tests {
     fn hex_formatting() {
         let b = Bytes::from(vec![1, 35, 69, 103, 137, 171, 205, 239]);
         let expected = String::from("0x0123456789abcdef");
-        assert_eq!(format!("{:x}", b), expected);
-        assert_eq!(format!("{}", b), expected);
+        assert_eq!(format!("{b:x}"), expected);
+        assert_eq!(format!("{b}"), expected);
     }
 
     #[test]
@@ -219,7 +219,7 @@ mod tests {
     #[test]
     fn test_debug_formatting() {
         let b = Bytes::from(vec![1, 35, 69, 103, 137, 171, 205, 239]);
-        assert_eq!(format!("{:?}", b), "Bytes(0x0123456789abcdef)");
-        assert_eq!(format!("{:#?}", b), "Bytes(0x0123456789abcdef)");
+        assert_eq!(format!("{b:?}"), "Bytes(0x0123456789abcdef)");
+        assert_eq!(format!("{b:#?}"), "Bytes(0x0123456789abcdef)");
     }
 }

@@ -16,7 +16,7 @@ pub struct Ast {
     pub node_type: NodeType,
     #[serde(with = "serde_helpers::display_from_str")]
     pub src: SourceLocation,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub nodes: Vec<Node>,
 
     /// Node attributes that were not deserialized.
@@ -39,7 +39,7 @@ pub struct Node {
     pub src: SourceLocation,
 
     /// Child nodes for some node types.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub nodes: Vec<Node>,
 
     /// Body node for some node types.
@@ -73,7 +73,7 @@ impl FromStr for SourceLocation {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let invalid_location = move || format!("{} invalid source location", s);
+        let invalid_location = move || format!("{s} invalid source location");
 
         let mut split = s.split(':');
         let start = split
