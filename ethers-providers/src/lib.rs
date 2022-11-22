@@ -676,7 +676,7 @@ pub trait Middleware: Sync + Send + Debug {
         &self,
         block_count: T,
         last_block: BlockNumber,
-        reward_percentiles: &[f64],
+        reward_percentiles: &[u64],
     ) -> Result<FeeHistory, Self::Error> {
         self.inner()
             .fee_history(block_count, last_block, reward_percentiles)

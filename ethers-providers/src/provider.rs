@@ -1203,7 +1203,7 @@ impl<P: JsonRpcClient> Middleware for Provider<P> {
         &self,
         block_count: T,
         last_block: BlockNumber,
-        reward_percentiles: &[f64],
+        reward_percentiles: &[u64],
     ) -> Result<FeeHistory, Self::Error> {
         let block_count = block_count.into();
         let last_block = utils::serialize(&last_block);
@@ -2002,7 +2002,7 @@ mod tests {
         .unwrap();
 
         let history =
-            provider.fee_history(10u64, BlockNumber::Latest, &[10.0, 40.0]).await.unwrap();
+            provider.fee_history(10u64, BlockNumber::Latest, &[10, 40]).await.unwrap();
         dbg!(&history);
     }
 
