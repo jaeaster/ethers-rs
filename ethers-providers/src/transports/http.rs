@@ -117,9 +117,9 @@ impl JsonRpcClient for Provider {
         if self.url().to_string() == "https://wallaby.node.glif.io/rpc/v1" &&
             method == "eth_newFilter"
         {
-            let raw_string = format!("0x{}", raw.get().replace("-", ""));
+            let raw_string = raw.get().replace("-", "");
             let res = serde_json::from_str(&raw_string)
-                .map_err(|err| ClientError::SerdeJson { err, text: raw.to_string() })?;
+                .map_err(|err| ClientError::SerdeJson { err, text: raw_string.to_string() })?;
             return Ok(res)
         } else {
             let res = serde_json::from_str(raw.get())
