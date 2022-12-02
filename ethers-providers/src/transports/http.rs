@@ -72,9 +72,28 @@ impl JsonRpcClient for Provider {
         params: T,
     ) -> Result<R, ClientError> {
         let next_id = self.id.fetch_add(1, Ordering::SeqCst);
-        let payload = Request::new(next_id, method, params);
+        let res = if self.url().to_string() == "https://wallaby.node.glif.io/rpc/v1" &&
+            (method == "eth_uninstallFilter" || method == "eth_getFilterChanges")
+        {
+            let mut params = serde_json::to_string(&params).unwrap();
+            //'[0x2882a03c69234b9783579c83ad3414b9]'
+            params = params.replace("[\"0x", "");
+            params = format!(
+                "[\"{}-{}-{}-{}-{}\"]",
+                &params[0..8],
+                &params[8..12],
+                &params[12..16],
+                &params[16..20],
+                &params[20..32]
+            );
+            //'2882a03c-6923-4b97-8357-9c83ad3414b9'
+            let payload = Request::new(next_id, method, params);
+            self.client.post(self.url.as_ref()).json(&payload).send().await?
+        } else {
+            let payload = Request::new(next_id, method, params);
+            self.client.post(self.url.as_ref()).json(&payload).send().await?
+        };
 
-        let res = self.client.post(self.url.as_ref()).json(&payload).send().await?;
         let body = res.bytes().await?;
 
         let raw = match serde_json::from_slice(&body) {
@@ -95,10 +114,18 @@ impl JsonRpcClient for Provider {
             }
         };
 
-        let res = serde_json::from_str(raw.get())
-            .map_err(|err| ClientError::SerdeJson { err, text: raw.to_string() })?;
-
-        Ok(res)
+        if self.url().to_string() == "https://wallaby.node.glif.io/rpc/v1" &&
+            method == "eth_newFilter"
+        {
+            let raw_string = format!("0x{}", raw.get().replace("-", ""));
+            let res = serde_json::from_str(&raw_string)
+                .map_err(|err| ClientError::SerdeJson { err, text: raw.to_string() })?;
+            return Ok(res)
+        } else {
+            let res = serde_json::from_str(raw.get())
+                .map_err(|err| ClientError::SerdeJson { err, text: raw.to_string() })?;
+            return Ok(res)
+        }
     }
 }
 
