@@ -80,7 +80,7 @@ impl JsonRpcClient for Provider {
             //'[0x2882a03c69234b9783579c83ad3414b9]'
             params = params.replace("[\"0x", "");
             params = format!(
-                "[\"{}-{}-{}-{}-{}\"]",
+                "{}-{}-{}-{}-{}",
                 &params[0..8],
                 &params[8..12],
                 &params[12..16],
@@ -89,7 +89,7 @@ impl JsonRpcClient for Provider {
             );
             println!("Modified Params: {:?}", params);
             //'2882a03c-6923-4b97-8357-9c83ad3414b9'
-            let payload = Request::new(next_id, method, params);
+            let payload = Request::new(next_id, method, [params]);
             println!("Payload: {:?}", payload);
             self.client.post(self.url.as_ref()).json(&payload).send().await?
         } else {
