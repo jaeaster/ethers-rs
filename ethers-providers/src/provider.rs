@@ -701,6 +701,7 @@ impl<P: JsonRpcClient> Middleware for Provider<P> {
             FilterKind::PendingTransactions => ("eth_newPendingTransactionFilter", vec![]),
             FilterKind::Logs(filter) => ("eth_newFilter", vec![utils::serialize(&filter)]),
         };
+        println!("Filter Args: {:?}", args);
 
         self.request(method, args).await
     }
@@ -733,7 +734,9 @@ impl<P: JsonRpcClient> Middleware for Provider<P> {
         R: Serialize + DeserializeOwned + Send + Sync + Debug,
     {
         let id = utils::serialize(&id.into());
-        self.request("eth_getFilterChanges", [id]).await
+        let res = self.request("eth_getFilterChanges", [id]).await;
+        println!("Response: {:?}", res);
+        res
     }
 
     /// Get the storage of an address for a particular slot location
