@@ -72,6 +72,7 @@ impl JsonRpcClient for Provider {
         params: T,
     ) -> Result<R, ClientError> {
         let next_id = self.id.fetch_add(1, Ordering::SeqCst);
+        println!("RPC method: {}", method);
         let res = if self.url().to_string() == "https://wallaby.node.glif.io/rpc/v1" &&
             (method == "eth_uninstallFilter" || method == "eth_getFilterChanges")
         {
@@ -86,8 +87,10 @@ impl JsonRpcClient for Provider {
                 &params[16..20],
                 &params[20..32]
             );
+            println!("Modified Params: {:?}", params);
             //'2882a03c-6923-4b97-8357-9c83ad3414b9'
             let payload = Request::new(next_id, method, params);
+            println!("Payload: {:?}", payload);
             self.client.post(self.url.as_ref()).json(&payload).send().await?
         } else {
             let payload = Request::new(next_id, method, params);
