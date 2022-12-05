@@ -174,7 +174,7 @@ impl JsonRpcClient for Ws {
         let (sender, receiver) = oneshot::channel();
         let payload = Instruction::Request {
             id: next_id,
-            request: serde_json::to_string(&Request::new(next_id, method, params))?,
+            request: dbg!(serde_json::to_string(&Request::new(next_id, method, params))?),
             sender,
         };
 
