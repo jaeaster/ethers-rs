@@ -208,7 +208,7 @@ struct WsServer<S> {
     instructions: Fuse<mpsc::UnboundedReceiver<Instruction>>,
 
     pending: BTreeMap<u64, Pending>,
-    subscriptions: BTreeMap<U256, Subscription>,
+    subscriptions: BTreeMap<u64, Subscription>,
 }
 
 impl<S> WsServer<S>
@@ -291,7 +291,7 @@ where
 
     /// Dispatch a subscription request
     async fn service_subscribe(&mut self, id: U256, sink: Subscription) -> Result<(), ClientError> {
-        if self.subscriptions.insert(id, sink).is_some() {
+        if self.subscriptions.insert(id.as_u64(), sink).is_some() {
             warn!("Replacing already-registered subscription with id {:?}", id);
         }
         Ok(())
@@ -299,7 +299,7 @@ where
 
     /// Dispatch a unsubscribe request
     async fn service_unsubscribe(&mut self, id: U256) -> Result<(), ClientError> {
-        if self.subscriptions.remove(&id).is_none() {
+        if self.subscriptions.remove(&id.as_u64()).is_none() {
             warn!("Unsubscribing from non-existent subscription with id {:?}", id);
         }
         Ok(())

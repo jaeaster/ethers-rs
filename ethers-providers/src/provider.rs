@@ -1145,8 +1145,8 @@ impl<P: JsonRpcClient> Middleware for Provider<P> {
         R: DeserializeOwned + Send + Sync,
         P: PubsubClient,
     {
-        let id: U256 = self.request("eth_subscribe", params).await?;
-        SubscriptionStream::new(id, self).map_err(Into::into)
+        let id: u64 = self.request("eth_subscribe", params).await?;
+        SubscriptionStream::new(id.into(), self).map_err(Into::into)
     }
 
     async fn unsubscribe<T>(&self, id: T) -> Result<bool, ProviderError>

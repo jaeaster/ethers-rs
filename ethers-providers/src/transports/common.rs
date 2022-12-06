@@ -58,7 +58,7 @@ pub enum Response<'a> {
 
 #[derive(Deserialize, Debug)]
 pub struct Params<'a> {
-    pub subscription: U256,
+    pub subscription: u64,
     #[serde(borrow)]
     pub result: &'a RawValue,
 }
