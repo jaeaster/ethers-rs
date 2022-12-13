@@ -73,30 +73,8 @@ impl JsonRpcClient for Provider {
     ) -> Result<R, ClientError> {
         let next_id = self.id.fetch_add(1, Ordering::SeqCst);
         println!("RPC method: {}", method);
-        let res = if self.url().to_string() == "https://wallaby.node.glif.io/rpc/v1" &&
-            (method == "eth_uninstallFilter" || method == "eth_getFilterChanges")
-        {
-            let mut params = serde_json::to_string(&params).unwrap();
-            //'[0x2882a03c69234b9783579c83ad3414b9]'
-            params = params.replace("[\"0x", "");
-            params = format!(
-                "{}-{}-{}-{}-{}",
-                &params[0..8],
-                &params[8..12],
-                &params[12..16],
-                &params[16..20],
-                &params[20..32]
-            );
-            //'2882a03c-6923-4b97-8357-9c83ad3414b9'
-            let payload = Request::new(next_id, method, [params]);
-            println!("Payload: {:?}", payload);
-            let request = self.client.post(self.url.as_ref()).json(&payload);
-            request.send().await?
-        } else {
-            let payload = Request::new(next_id, method, params);
-            let request = self.client.post(self.url.as_ref()).json(&payload);
-            request.send().await?
-        };
+        let payload = Request::new(next_id, method, params);
+        let res = self.client.post(self.url.as_ref()).json(&payload).send().await?;
 
         let body = res.bytes().await?;
 
@@ -119,11 +97,15 @@ impl JsonRpcClient for Provider {
         };
 
         if self.url().to_string() == "https://wallaby.node.glif.io/rpc/v1" &&
-            method == "eth_newFilter"
+            method == "eth_getTransactionByHash"
         {
-            println!("Raw filter id: {}", raw.get());
-            let raw_string = raw.get().replace("-", "");
-            println!("To-Hex filter id: {}", raw_string);
+            // "v":"0x","r":"0x","s":"0x"
+            let raw_string = raw
+                .get()
+                .replace("\"v\":\"0x\"", "\"v\":\"0x0\"")
+                .replace("\"r\":\"0x\"", "\"r\":\"0x0\"")
+                .replace("\"s\":\"0x\"", "\"s\":\"0x0\"");
+            // "v":"0x0","r":"0x0","s":"0x0"
             let res = serde_json::from_str(&raw_string)
                 .map_err(|err| ClientError::SerdeJson { err, text: raw_string.to_string() })?;
             return Ok(res)
